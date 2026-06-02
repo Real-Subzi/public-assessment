@@ -1,7 +1,12 @@
 <section class="vehicle-list">
   <header class="vehicle-list__header">
-    <h1>Fleet Vehicles</h1>
-    <p class="vehicle-list__count">{{ getFilteredVehicles().length }} of {{ vehicles().length }} vehicles</p>
+    <div>
+      <h1>Fleet Vehicles</h1>
+      <p class="vehicle-list__count">{{ getFilteredVehicles().length }} of {{ vehicles().length }} vehicles</p>
+    </div>
+    <button class="button-export" (click)="exportToCsv()" [disabled]="getFilteredVehicles().length === 0">
+      Export CSV
+    </button>
   </header>
 
   <div class="vehicle-list__filters">
@@ -28,30 +33,86 @@
     </label>
   </div>
 
-  <table class="vehicle-list__table">
-    <thead>
-      <tr>
-        <th>Plate</th>
-        <th>Vehicle</th>
-        <th>Year</th>
-        <th>Status</th>
-        <th>Account</th>
-        <th>Last seen</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (vehicle of getFilteredVehicles(); track vehicle.id) {
+  <div class="vehicle-list__content">
+    <table class="vehicle-list__table">
+      <thead>
         <tr>
-          <td>{{ vehicle.plate }}</td>
-          <td>{{ vehicle.make }} {{ vehicle.model }}</td>
-          <td>{{ vehicle.year }}</td>
-          <td>
-            <span class="status status--{{ vehicle.status }}">{{ vehicle.status }}</span>
-          </td>
-          <td>{{ vehicle.account_id }}</td>
-          <td>{{ vehicle.last_known_location?.recorded_at }}</td>
+          <th>Plate</th>
+          <th>Vehicle</th>
+          <th>Year</th>
+          <th>Status</th>
+          <th>Account</th>
+          <th>Last seen</th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (vehicle of getFilteredVehicles(); track vehicle.id) {
+          <tr 
+            (click)="selectVehicle(vehicle)"
+            [class.is-selected]="selectedVehicle()?.id === vehicle.id"
+            class="row-status--{{ vehicle.status }}"
+          >
+            <td>{{ vehicle.plate }}</td>
+            <td>{{ vehicle.make }} {{ vehicle.model }}</td>
+            <td>{{ vehicle.year }}</td>
+            <td>
+              <span class="status status--{{ vehicle.status }}">{{ vehicle.status }}</span>
+            </td>
+            <td>{{ vehicle.account_id }}</td>
+            <td>{{ vehicle.last_known_location?.recorded_at }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (selectedVehicle(); as vehicle) {
+      <aside class="vehicle-details">
+        <header class="vehicle-details__header">
+          <h2>Vehicle Details</h2>
+          <button class="button-close" (click)="selectVehicle(null)">×</button>
+        </header>
+
+        <div class="vehicle-details__body">
+          <dl class="details-grid">
+            <dt>Plate</dt>
+            <dd>{{ vehicle.plate }}</dd>
+
+            <dt>VIN</dt>
+            <dd>{{ vehicle.vin }}</dd>
+
+            <dt>Make / Model</dt>
+            <dd>{{ vehicle.make }} {{ vehicle.model }}</dd>
+
+            <dt>Year</dt>
+            <dd>{{ vehicle.year }}</dd>
+
+            <dt>Status</dt>
+            <dd>
+              <span class="status status--{{ vehicle.status }}">
+                <span class="status__indicator"></span>
+                {{ vehicle.status.replace('_', ' ') }}
+              </span>
+            </dd>
+
+            <dt>Account ID</dt>
+            <dd>{{ vehicle.account_id }}</dd>
+
+            <dt>Device ID</dt>
+            <dd>{{ vehicle.device_id }}</dd>
+
+            <dt>Last Known Location</dt>
+            <dd>
+              @if (vehicle.last_known_location; as loc) {
+                {{ loc.lat }}, {{ loc.lng }}
+                <br />
+                <small>{{ loc.recorded_at }}</small>
+              } @else {
+                Unknown
+              }
+            </dd>
+          </dl>
+        </div>
+      </aside>
+    }
+  </div>
 </section>
